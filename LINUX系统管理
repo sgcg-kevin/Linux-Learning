@@ -116,7 +116,7 @@ Linux磁盘管理
 
 		VFS：Virtual File System
 			Linux的文件系统：ext2(无日志功能),ext3,ext4,xfs,relserfs,btrfs
-			光盘：iso9600
+			光盘：iso9660
 			网络文件系统：nfs,cifs
 			集群文件系统：gfs2ocfs2
 			内合级分布式文件系统：ceph
@@ -284,7 +284,7 @@ Linux磁盘管理
 			挂载点：mount_point，用于作为另一个文件系统的访问入口；
 				(1)事先存在；
 				(2)应该使用未被或不会被其他进程使用到的目录；
-				(3)挂在殿下原有的文件将会被隐藏；
+				(3)挂载点下原有的文件将会被隐藏；
 
 		mount命令：
 			mount [-nrw] [-t vfstype] [-o options] device dir
@@ -371,7 +371,7 @@ Linux磁盘管理
 					UUID
 					伪文件系统：如sysfs,proc,tmpfs等
 				(2)挂载点
-					swap类型的设备的挂载点为swao；
+					swap类型的设备的挂载点为swap；
 				(3)文件系统类型；
 				(4)挂载选项
 					defaults：使用默认挂载选项；
@@ -1518,7 +1518,7 @@ Linux程序包管理(2)
 			ftp://
 			http://
 			nfs://
-			file://
+			file:///
 
 	yum客户端
 		配置文件：
@@ -1537,6 +1537,581 @@ Linux程序包管理(2)
 			默认为：roundwobin：意为随机
 		cost=#
 			#默认为1000
+
+		yum源：？？？
+
+			[base]
+			name=Base Repo on url
+			baseurl=url
+			gpgcheck=0
+
+			[epel]
+			name=Fedora EPEL for EL6 x86_64
+			baseurl=url
+			gpgcheck=0
+
+	yum命令的用法：
+		yum [options] [command] [package ...]
+
+       command is one of:
+        * install package1 [package2] [...]
+        * update [package1] [package2] [...]
+        * update-to [package1] [package2] [...]
+        * update-minimal [package1] [package2] [...]
+        * check-update
+        * upgrade [package1] [package2] [...]
+        * upgrade-to [package1] [package2] [...]
+        * distribution-synchronization [package1] [package2] [...]
+        * remove | erase package1 [package2] [...]
+        * autoremove [package1] [...]
+        * list [...]
+        * info [...]
+        * provides | whatprovides feature1 [feature2] [...]
+        * clean [ packages | metadata | expire-cache | rpmdb | plugins | all]
+        * makecache [fast]
+        * groups [...]
+        * search string1 [string2] [...]
+        * shell [filename]
+        * resolvedep dep1 [dep2] [...]
+           (maintained for legacy reasons only - use repoquery  or  yum  pro‐vides)
+        * localinstall rpmfile1 [rpmfile2] [...]
+           (maintained for legacy reasons only - use install)
+        * localupdate rpmfile1 [rpmfile2] [...]
+           (maintained for legacy reasons only - use update)
+        * reinstall package1 [package2] [...]
+        * downgrade package1 [package2] [...]
+        * deplist package1 [package2] [...]
+        * repolist [all|enabled|disabled]
+        * repoinfo [all|enabled|disabled]
+        * repository-packages  <enabled-repoid>  <install|remove|remove-or-reinstall|remove-or-distribution-synchronization> [package2] [...]
+        * version [ all | installed | available | group-* | nogroups* | grou‐plist | groupinfo ]
+        * history   [info|list|packages-list|packages-info|summary|addon-info|redo|undo|rollback|new|sync|stats]
+        * load-transaction [txfile]
+        * updateinfo [summary | list  |  info  |  remove-pkgs-ts  |  exclude-
+       updates | exclude-all | check-running-kernel]
+        * fssnapshot [summary | list | have-space | create | delete]
+        * fs [filters | refilter | refilter-cleanup | du]
+        * check
+        * help [command]
+
+    显示仓库列表：
+    	repolist [all|enabled|disabled]
+
+    显示程序包：
+    	list
+    		# yum list [all | glob_exp1] [glob_exp2] [...]
+    		# yum list {available|installed|updates} [glob_exp1] [...]
+
+    安装程序包：
+    	install package1 [package2] [...]
+
+    	reinstall package1 [package2] [...]（重新安装）
+
+    升级程序包：
+    	update [package1] [package2] [...]
+
+    	downgrade package1 [package2] [...]（降级）
+
+    检查可用升级：
+    	check-update
+
+    卸载程序包：
+    	remove | erase package1 [package2] [...]
+
+    查看程序包information：
+    	info [...]
+
+    查看指定的特性（可以是某文件）是由哪个程序包所提供：
+    	provides | whatprovides feature1 [feature2] [...]
+
+    清理本地缓存：
+    	clean [ packages | metadata | expire-cache | rpmdb | plugins | all]
+
+    构建缓存：
+    	makecache [fast]
+
+    搜素：
+    	search string1 [string2] [...]
+
+    	以指定的关键字搜索程序包名及summary信息；
+
+    查看指定包所依赖的capabilities：
+    	deplist package1 [package2] [...]
+
+    查看yum事务历史：
+    	history   [info|list|packages-list|packages-info|summary|addon-info|redo|undo|rollback|new|sync|stats]
+
+    安装及升级本地程序包：
+    	localinstall rpmfile1 [rpmfile2] [...]
+    		(maintained for legacy reasons only - use install)
+    	localupdate rpmfile1 [rpmfile2] [...]
+    		(maintained for legacy reasons only - use update)
+
+    包组管理的相关命令：
+    	groups [...]
+
+    如何使用光盘当作本地YUM仓库：
+    	（1）挂载光盘至某目录，例如/media/cdrom
+    		# mount -r -t iso9660 /dev/cdrom /media/cdrom
+    	（2）创建配置文件
+    		[CentOS7]
+    		name=
+    		baseurl=
+    		gpgcheck=
+    		enabled=
+
+    yum的命令行选项：
+    	--nogpgcheck：禁止运行gpg check；
+    	-y：自动回答为"yes"；
+    	-q：静默模式；
+    	--disablerepo=repoidglob：临时禁用此处指定的repo；
+    	--enablerepo=repoidglob：临时启用指定repo；
+    	--noplugins：禁用所有插件；
+
+    yum的repo配置文件中可用的变量：
+    	$releasever：当前OS的发行版的主版本号；
+    	$arch：平台；
+    	$basearch：基础平台；
+    	$YUM0-$YUM9
+
+    	http://mirrors.163.com/centos/$releasever/$basearch/os
+
+    创建yum仓库：
+    	createrepo [options] <directory>
+
+    程序包编译安装：
+    	testapp-VERSION-release.src.rpm --> 安装后使用rpmbuild命令制作成二进制格式的rpm包，而后再安装；
+
+    	源代码 --> 预处理 --> 编译(gcc) --> 汇编 --> 链接 --> 执行
+
+    	源代码组织格式：
+    		多文件：文件中的代码之间，很可能存在跨文件依赖关系；
+
+    		C、C++：make --> (configure --> Makefile.in --> makefile)
+    		java：maven
+
+    		C代码编译安装三步骤：
+    			./configure：
+    				(1) 通过选项传递参数，指定启用特性、安装路径等；执行时会参考用户的指定以及Makefile.in文件生成makefile；
+    				(2) 检查各依赖到的外部环境；
+    			make：
+    				根据makefile文件，构建应用程序；
+    			make install：
+
+    		开发工具：
+    			auotoconf：生成configure脚本
+    			auotomake：生成Makefile.in
+
+    		建议：安装前查看INSTALL, README
+
+    	开源程序源代码获取；
+    		官方自建站点：
+    			aoache.org(ASF)
+    			mariadb.org
+    			...
+    		代码托管：
+    			SourceForge
+    			Github.com
+    			code.google.com
+
+    	c/c++: gcc (GNU C Complier)
+
+    	编译C源代码：
+    		前提：提供开发工具及开发环境
+    			开发工具：make, gcc等
+    			开发环境：开发库，头文件
+    				gilbc：标准库
+
+    			通过“包组”提供开发组件
+    				CentOS 6："Development Tools", "Server Platforem Development"
+
+    		第一步：Configure脚本
+    			选项：指定安装位置、指定启用的特性
+
+    			--help：获取其支持使用的选项
+    				选项分类：
+    					安装路径设定：
+    						--prefix=/PATH/TO/SOMEWHERE：指定默认安装位置；默认为/usr/local
+    						--sysconfdir=/PATH/TO/SOMEWHERE：配置文件安装位置；
+
+    					System types：
+
+    					Optional Features：可选特性
+    						--disable-FEATURE
+    						--enable-FEATURE[=ARG]
+
+    					Optional Packages：可选程序包
+    						--with-PACKAGE[=ARG]
+    						--without-PACKAGE
+
+    		第二步：make
+
+    		第三步：make install
+
+    	安装后的配置：
+    		(1) 导出二进制程序目录至PATH环境变量中；
+    			编辑文件/etc/profile.d/NAME.sh
+    				export PATH=/PATH/TO/BIN:$PATH
+
+    		(2) 导出库文件路径
+    			/etc/ld.so.conf.d/NAME.conf
+    				添加新的库文件所在目录至此文件中；
+
+    			让系统重新生成缓存：
+    				ldconfig [-v]
+
+    		(3) 导出头文件
+    			基于连接的方式实现：
+    				ln -sv 
+
+    		(4) 导出帮助手册
+    			编辑/etc/man.config文件
+    				添加一个MANPATH路径
+
+    练习：
+    	1、yum的配置和使用；包括yum repository的创建；
+    	2、编译安装apache 2.2；启动此服务；
+
+    博客作业：程序包管理：rpm/yum/编译
+
+桌面环境：
+	Windows 7, OpenSUSW 13.2, Kubuntu(KDE)
+
+回顾：yum程序包管理器和编译安装
+
+	C/S：
+		yum client(yum)
+		yum repository(ftp/http/https)
+
+	base：
+	extras
+	updates
+
+	repo：
+		[id]
+		name=
+		baseurl=http://
+			http://
+		gpgcheck=
+
+	子命令：
+		list, clean, makecache, grouplist, info, whatprovides
+		install, update, remove, groupinstall, groupupdate, groupgroupinfo
+
+		yum install /usr/local/sec/testapp-3.2.1-1.el7.x86_64.rpm
+			file:///
+
+	编译安装：
+		C/C++
+			./configure --> makefile.in ==> makefile
+				make + makefile ==> binary, library, configfile, manual
+				make install
+
+		perl, Python, Java
+
+bash脚本编程
+
+	过程式编程语言的执行流程：
+		顺序执行
+		选择执行
+		循环执行
+
+	选择执行：
+		(1)&&, ||
+		(2)if语句
+		(3)case语句
+
+		if语句：三种格式
+			单分支的if语句
+				if CONDITION; then
+					if-true-分支;
+
+				fi
+
+			双分支的if语句
+				if CONDITION; then
+					if-true-分支
+				else
+					if-false-分支
+				fi
+
+			多分支的if语句
+				if CONDITION1; then
+					条件1为真分支
+				elif CONDITION2; then
+					条件2为真分支
+				elif CONDITION3; then
+					条件3为真分支
+				...
+				elif CONDITIONn; then
+					条件n为真分支
+				else
+					所有条件均不满足时的分支
+				fi
+
+				注意：即便多个条件可能同时都能满足，分支只会执行其中一个，首先测试为“真”；
+
+				示例：脚本参数传递一个文件路径给脚本，判断此文件的类型；
+
+					#!/bin/bash
+					#
+					if [ $# -lt 1 ]; then
+					    echo "At least one path."
+					    exit 1
+					fi
+
+					if ! [ -e $1 ]; then
+					    echo "No such file."
+					    exit 2
+					fi
+
+					if [ -f $1 ]; then
+					    echo "Common file."
+					elif [ -d $1 ]; then
+					    echo "Directory"
+					elif [ -L $1 ]; then
+					    echo "Symbolic link."
+					elif [ -b $1 ]; then
+					    echo "block special file"
+					elif [ -c $1 ]; then
+					    echo "character special file"
+					elif [ -S $1 ]; then
+					    echo "Socket file"
+					else
+					    echo "Unknown"
+					fi
+
+					注意：if语句可嵌套；
+
+			练习：写一个脚本
+				(1) 传递一个参数给脚本，此参数为用户名；
+				(2) 根据其ID号来判断用户类型；
+					0：管理员
+					1-999：系统用户
+					1000+：登陆用户
+
+					#!/bin/bash
+					#
+					[ $# -lt 1 ] && echo "At least one user name." && exit 1
+
+					! id $1 & /dev/null && echo "No such user." && exit 2
+
+					userid=$(id -u $1)
+
+					if [ $userid -eq 0 ]; then
+					    echo "root"
+					elif [ $userid -ge 1000 ]; then
+					    echo "login user"
+					else 
+					    echo "System user."
+					fi
+
+			练习：写一个脚本
+				(1)列出如下菜单给用户：
+					disk) show disks info;
+					mem) show memory info;
+					cpu) show cpu info;
+					*) quit;
+				(2)提示用户给出自己的选择，而后显示对应其选择的相应系统信息；
+
+					#!/bin/bash
+					#
+					cat << EOF
+					disk) show disks info
+					mem) show memory info
+					cpu) show cpu info
+					*) QUIT
+					EOF
+
+					read -p "Your choice: " option
+					if [[ "$option" == "disk" ]]; then
+					    fdisk -l /dev/[shv]d[a-z]
+					elif [[ "$option" == "mem" ]]; then
+					    free -m
+					elif [[ "$option" == "cpu" ]]; then
+					    lscpu
+					else
+					    echo "Unkown option."
+					    exit 3
+					fi
+
+	循环执行：将一段代码重复执行0、1或多次；
+		进入条件：条件满足时才进入循环；
+		退出条件：每个循环都应该有退出条件，以有机会退出循环；
+
+		bash脚本：
+			for循环
+			while循环
+			until循环
+
+		for循环：
+			两种格式：
+				(1)遍历列表
+				(2)控制变量
+
+			遍历列表：
+				for VARAIBLE in LIST; do
+					循环体
+				done
+
+				进入条件：只要列表有元素，即可进入循环；
+				退出条件：列表中的元素遍历完成； 
+
+				LISTT的生成方式：
+					(1) 直接给出；
+					(2) 整数列表
+						(a){start..end}
+						(b)seq [start [incremtal]] last
+					(3) 返回列表的命令
+					(4) glob
+					(5) 变量引用
+						$@,$*
+					...
+
+				#!/bin/bash
+				#
+				for username in user21 user22 user23; do
+					if id $username &> /dev/null; then
+						echo "$username exists."
+					else
+						useradd $y=username && echo "Add user $username finished."
+					fi
+				done
+
+				示例：求100以内所有正整数之和；
+					#!/bin/bash
+					#
+					declare -i sum=0
+
+					for i in {1..100}; do
+					   echo "\$sum is $sum, \$i is $i "
+					   sum=$[$sum+$i]
+					done
+
+					echo $sum
+
+				示例：判断/var/log目录下的每一个文件的内容类型
+				#!/bin/bash
+				#
+				for filename in /var/log/*; do
+				    if [ -f $filename ]; then
+				        echo "Common file."
+				    elif [ -d $filename ]; then
+				        echo "Directory"
+				    elif [ -L $filename ]; then
+				        echo "Symbolic link."
+				    elif [ -b $filename ]; then
+				        echo "block special file"
+				    elif [ -c $filename ]; then
+				        echo "character special file"
+				    elif [ -S $filename ]; then
+				        echo "Socket file"
+				    else
+				        echo "Unknown"
+				    fi
+				done
+
+			练习：
+				1、分别求100以内所有偶数之和，以及所有奇数之和；
+				2、计算当前系统上的所有用户的id之和；
+				3、通过脚本参数传递一个目录给脚本，而后计算此目录下所有文本文件的行数之和；并说明此类文件的总数；
+
+sed命令：
+
+	文本处理三剑客：
+		grep,egrep,fgrep：文本过滤器
+		sed：Stream EDitor，流编辑器，行
+		awk：文本格式化工具，报告生成器
+
+	sed [OPTION]... 'script' [input-file] ...
+		script：
+			地址定界编辑命令
+
+		常用选项：
+			-n：不输出模式空间中的内容至屏幕；
+			-e script, --expression=script：多点编辑；
+
+				~]# sed -e '/^UUID/d' -e 's@^#[[:space:]]*@@' /etc/fstab
+
+			-f /PATH/TP/SED_SCRIPT_FILE
+				每行一个编辑命令；
+			-r, --regexp-extended：支持使用扩展正则表达式；
+			-i[SUFFIX], --in-place[=SUFFIX]：直接编辑原文件；
+
+		地址定界：
+			(1) 空地址：对全文进程处理；
+			(2) 单地址：
+				#：指定行；
+				/pattern/：被此模式所匹配到的每一行；
+			(3) 地址范围
+				#,#：
+				#,+#：
+				#,/pat1/
+				/pat1/,/pat2/
+				$：最后一行
+
+			(4) 步进：~
+				1~2：所有奇数行
+				2~2：所有偶数行
+
+		编辑命令：
+			d：删除；
+			p：显示模式空间中的内容；
+			a \text：在行后面追加文本"text",支持使用\n实现多行追加；
+			i \text：在行前面插入文本"text",支持使用\n实现多行插入；
+			c \text：把匹配到的行替换为此处指定的文本"text"；
+			w /PATH/TO/SOMEFILE：保存模式空间匹配到的行至至指定的文件中；
+			r /PATH/FROM/SOMEFILE：读取指定文件的内容至当前文件被模式匹配到的行处；文件合并；
+			=：为模式匹配到的行打印行号；
+			!：条件取反；
+				地址定界!编辑命令；
+			s///：查找替换，其分隔符可自行指定，常用的有s@@@,s###等；
+				替换标记：
+					g：全局替换；
+					w /PATH/TO/SOMEFILE：将替换成功的结果保存至指定文件中；
+					p：显示替换成功的行；
+
+				练习1：删除/boot/grub/grub2.cfg文件中所有以空白字符开头的行的行首的所有空白字符；
+					~]# sed 's@^[[:space:]]\+@@' /etc/grub2.cfg
+				练习2：删除/etc/fstab文件中所有以#开头的行首的#及#后的所有空白字符；
+					~]# sed 's@^#[[:space:]]*@@' /etc/fstab 
+				练习3：输出一个绝对路径给sed命令，去除其目录，其行为类似于dirname；
+					~]# echo "/var/log/messages" | sed 's@[^/]\+/\?$@@'
+					~]# echo "/var/log/messages" | sed -r 's@[^/]+/?$@@'
+
+		高级编辑命令：
+			h：把模式空间中的内容覆盖至保持空间中；
+			H：把模式空间中的内容追加至保持空间中；
+			g：把保持空间中的内容覆盖至模式空间中；
+			G：把保持空间中的内容追加至模式空间中；
+			x：把模式空间中的内容与保持空间中的内容互换；
+			n：覆盖读取匹配到的行的下一行至模式空间中；
+			N：追加读取匹配到的行的下一行至模式空间中；
+			d：删除模式空间中的行；
+			D：删除多行模式空间中的所有行；
+
+			示例：
+				sed -n 'n;p' FILE：显示偶数行；
+				sed '1!G;h;$!d' FILE：逆序显示文件的内容；
+				sed '$!d' FILE ：取出最后一行；
+				sed '$!N;$!D' FILE：取出文件后两行；
+				sed '/^$d;G' FILE：删除原有的所有空白行，而后为所有的非空白行后添加一个空白行；
+				sed 'n;d' FILE：显示奇数行；
+				sed 'G' FILE：在原有的每行后方添加一个空白行；
+
+		博客作业：sed的用法；
+			
+
+
+
+
+			  
+
+
+
+
+
+
 
 
 
