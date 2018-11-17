@@ -2378,7 +2378,7 @@ Linux网络属性配置(2)
 				# dig -x IP
 					IP --> FQDN
 
-	iproute2家族：
+	iproute家族：
 		ip命令：
 			show / manipulate routing, devices, policy routing and tunnels
 
@@ -2398,18 +2398,372 @@ Linux网络属性配置(2)
 						name NAME：重命名接口；
 						mtu NUMBER：设置MTU的大小默认为1500；
 						netns NETNSNAME | PID：ns为namespace，用于将接口移动到指定的网络名称空间；
+
 					ip link show - display device attributes
 
+					ip link help - 显示简要使用帮助；
 
+				ip-netns - process network namespace management
 
+					ip netns [ list ]：列出所有的netns
+					ip netns add NETNSNAME：创建指定的netns
+					ip netns del NETNSNAME：删除指定的netns
+					ip [-all] netns exec [ NETNSNAME ] command...：在指定的netns中运行命令
 
+				ip-address - protocol address management
 
+					ip address add - add new protocol address.
+						ip addr add IFADDR dev IFACE
+							[label NAME]：为额外添加的地址指明接口别名；
+							[broadcast ADDRESS]：广播地址；会根据IP和NETMASK自动计算得到；
+							[scope SCOPE_VALUE]：
+								global：全局可用；
+								link：接口可用；
+								host：仅本机可用；
 
+					ip address delete - delete protocol address
+						ip addr delete IFADDR dev IFACE
 
+					ip address show - look at protocol addresses
+						[IFACE]：显示接口的地址；
 
+					ip address flush - flush protocol addresses
+						ip addr flush dev IFACE
 
+				ip-route - routing table management
 
+					ip route add - add new route
+					ip route change - change route
+					ip route replace - change or add new one
+						ip route add TYPE PREFIX via GW [dev IFACE] [src SOURCE_IP]
 
+						示例：
+							# ip route add 192.168.0.0/24 via 10.0.0.1 dev eth1 src 10.0.20.100
+							# ip route default via GW
+
+					ip route delete - delete route
+						ip route del TYPE PREFIX
+
+						示例：
+							# ip route del 192.168.1.0/24
+
+					ip route show - list routes
+						TYPE PREFIX
+					ip route show - list routes
+						TYPE PREFIX
+
+					ip route get - get a single route
+						ip route get TYPE PREFIX
+
+						示例：ip route get 192.168.0.0/24
+
+		ss命令：
+			ss [options] [ FILTER ]
+				选项：
+					-t：TCP协议的相关连接
+					-u：UDP相关的连接
+					-w：raw socket相关的连接
+					-l：监听相关的连接
+					-a：所有状态的连接
+					-n：数字格式
+					-p：相关的程序及其PID
+					-e：扩展格式信息
+					-m：内存用量
+					-o：计时器信息
+
+				FILTER := [ state STATE-FILTER ] [ EXPRESSION ]
+
+				TCP的常见状态：
+					TCP FSM：
+						LISTEN：监听
+						ESTABLISHED：建立的连接
+						FIN_WAIT_1:
+						FIN_WAIT_2:
+						SYN_SENT：
+						SYN_RECV：
+						CLOSED：
+
+					EXPRESSION：
+						dport = 
+						sport = 
+							示例：'(dport = :22 or sport = :22)'
+								~]# ss -tan '( dport = :22 or sport = :22 )'
+								~]# ss -tan state ESTABLISHED
+
+	配置文件：
+		IP/NETMASK/GW/DNF等属性的配置文件：/etc/sysconfig/network-scripts/iccfg-IFACE
+			IFACE：接口名称；
+		路由的相关配置文件：/etc/sysconfig/networkj-scripts/route-IFACE
+
+		配置文件/etc/sysconfig/network-scripts/ifcfg-IFACE通过大量参数来定义接口的属性；其可通过vim等文本编辑器直接修改，也可以使用专用的命令进行修改(CentOS 6：system-config-network(setup),CentOS 7：nmtui)
+
+			ifcfg-IFACE配置文件参数：
+				DEVICE：此配置文件对应的设备的名称；
+				ONBOOT：在系统引导过程中是否激活此接口；
+				UUID：此设备的惟一标识；
+				IPV6INIT：是否初始化IPv6；
+				BOOTPROTO：激活此接口时使用什么协议来配置接口属性，常用的有dhcp、bootp、static、none
+				TYPE：指明接口类型，常见的有Ethernet，Bridge；
+				DNS1：第一DNS服务器指向；
+				DNS2：第二DNS服务器指向；
+				DOMAIN：DNS搜索域；
+				IPADDR：IP地址；
+				NETMASK：子网掩码；CentOS 7支持使用PREFIX以长度方式指明子网掩码；
+				GATEWAY：默认网关；
+				USERCTL：是否允许普通用户控制此设备；
+				PEERDNS：如果BOOTPROTO的值为"dhcp"，是否允许dhcp server分配的dns服务器指向覆盖本地手动指定的DNS服务器指向；默认为允许；
+				HWADDR：设备的MAC地址；
+
+				NM_CONTROLLED：是否使用NetworkManager服务来控制接口；
+
+			网络服务：
+				network
+				NetworkManager 
+
+				管理网络服务;
+					CentOS 6：service SERVICE {start|stop|restart|status}
+					CentOS 7：systemctl {start|stop|restart|status} SERVICE[.service]
+
+				配置文件修改之后，如果要生效，需要重启网络服务；
+					CentOS 6：# service network restart
+					CentOS 7：# systemctl restart network.service
+
+		用到非默认网关路由：/etc/sysconfig/network-scripts/route-IFACE
+			支持两种配置方式，但不可混用；
+				(1)每行一个路由条目：
+					TARGET via GW
+
+				(2)每三行一个路由条目：
+					ADDRESS#=TARGET
+					NETMASK#=MASK
+					GATEWAY#=NEXTHOP
+
+	给接口配置多个地址：
+		ip addr之外，ifconfig或配置文件都可以；
+
+		(1)ifconfig IFACE_LABEL IPADDR/NETMASK
+
+			IFACE_LABEL：eth0:0, eth0:1,...
+
+		(2)为别名添加配置文件：
+			DEVICE=IFACE_LABEL
+			BOOTPROTO：网卡别名不支持动态获取地址；
+				static,none
+
+	nmcli命令：
+		nmcli [OPTIONS...] {help | general | networking | radio | connection | device | agent | monitor} [COMMAND] [ARGUMENTS...]
+
+		device - Show and manage network interfaces.
+			COMMAND :={status | show | set | connect | reapply | modify | disconnect | delete | monitor | wifi | lldp} [ARGUMENTS...]
+
+		connection - start, stop, and manage network connections
+			COMMAND :={show | up | down | modify | add | edit | clone | delete | monitor | reload | load | import | export} [ARGUMENTS...]
+
+			modify [--temporary] [id | uuid | path] ID {option value | [+|-]setting.property value}...
+
+			如何修改IP地址等属性；
+				# nmcli connection modify IFACE {+|-}setting.property value
+					ipv4.address
+					ipv4.gateway
+					ipv4.dns1
+					ipv4.method
+						 manual
+
+	博客作业：。。。
+
+	课外作业：nmap, ncat, tcpdump命令；
+
+回顾：ip命令，ss命令；配置文件；CentOS 7
+
+	ifcfg、ip、netstat、ss
+	配置文件：
+		/etc/sysconfig/network-scripts/
+			ifcfg-IFNAME
+			route-IFNAME
+	CentOS 7：nmcli, cnmtui
+
+Linux进程及作业管理
+	
+	内核的功用：进程管理、文件系统、网络功能、内存管理、驱动程序、安全功能
+
+	Process：运行中的程序的一个副本；
+		存在生命周期
+
+	Linux内核存储进程信息的固定格式：task struct
+		多个任务的task structs组成的链表：task lists
+
+	进程创建：
+		init
+			父子关系
+			进程：都由其父进程创建
+				fork(), clone()
+
+		进程优先级：
+			0-139：
+				1-99：实时优先级；
+				100-139：静态优先级
+					数字越小，优先级越高；
+
+				Nice值：
+					-20,19
+
+			Big O
+				O(1), O(logn), O(n), O(n^2), O(2^n)
+
+		进程内存：
+			Page Frame：页框，用于存储页面数据
+				存储Page
+
+				MMU：Memory Management Unit
+
+		IPC：Inter Process Communication
+			同一主机上：
+				signal
+				shm
+				semerphor
+
+			不同主机上：
+				rpc：remote procecure call
+				socket：
+
+		Linux内核：抢占式多任务
+
+		进程类型：
+			守护进程：daemon，在系统引导过程中启动的进程，跟终端无关的进程；
+			用户进程：跟终端相关，通过终端启动的进程
+				注意：也可把在前台启动的进程送往后台，以守护模式运行；
+
+		进程状态：
+			运行态：running
+			就绪态：ready
+			睡眠态：
+				可中断：interruptable
+				不可中断：uninterruptable 
+			停止态：暂停于内存中，但不会被调度执行，除非手动启动之；stopped
+			僵死态：zoombie
+
+		进程的分类：
+			CPU-Bound
+			IO-Bound
+
+		《Linux内核设计与实现》，《深入理解Linux内核》
+
+	Linux系统上的进程查看及管理工具：pstree, ps, pgrep, top, htop, glances, pmao, vmstat, dstat, kill, pkill, job, bg, fg, nohup, nice, renice, killall,...
+
+		CentOS 5：SysV init
+		CentOS 6：upstart
+		CentOS 7：systemd
+
+			/sbin/init,
+
+		pstree命令：
+			pstree - display a tree of processes
+
+		ps命令：
+			/proc/：内核中的状态信息
+				内核参数：
+					可设置其值从而调整内核运行特性的参数；/proc/sys/
+					状态变量：其用于输出内核中统计信息或状态信息，仅用于查看；
+
+				参数：模拟成文件系统类型；
+
+			进程：
+				/proc/#：
+					#：PID
+
+			ps - report a snapshot of the current processes.
+
+				ps [options]：
+					选项有三种风格：
+						1   UNIX options, which may be grouped and must be preceded by a dash.
+						2   BSD options, which may be grouped and must not be used with a dash.
+						3   GNU long options, which are preceded by two dashes.
+
+					启动进程的方式：
+						系统启动过程中自动启动：与终端无关的进程；
+						用户通过终端启动：与终端相关的进程；
+
+					选项：
+						a：所有与终端相关的进程；
+						x：所有与终端无关的进程；
+						u：以用户为中心组织进程状态信息显示；
+
+						常用组合之一：aux
+							VSZ：虚拟内存集；
+							RSS：Resident Size, 常驻内存集；
+							STAT：
+								R：running
+								S：interruptable sleeping
+								D：unintterupable sleeping
+								T：Stopped
+								Z：zombie
+
+								+：前台进程
+								l：多线程进程
+								N：低优先级进程
+								<：高优先级进程
+								s：session leader
+
+						-e：显示所有进程
+						-f：显示完整格式的进程信息
+
+						常用组合之二：-ef
+
+						-F：显示完整格式的进程信息
+							C：cpu utilization
+							PSR：运行于哪颗CPU之上
+						-H：以层级结构显示进程的相关信息；
+
+						常用组合之三：-eFH
+
+						常用组合之四：-eo, axo
+							o field1,field2,...：自定义要显示的字段历列表，以逗号分隔；
+								常用的field：pid, ni, pri, psr, pcpu, stat, comm, tty, ppid, rtprio
+									ni：nice值；
+									pri：priority，优先级；
+									rpprio：real time priority，实时优先级；
+
+			pgreg, pkill命令：
+				pgrep,  pkill  -  look  up  or signal processes based on name and other attributes
+
+				pgrep [options] pattern
+					-u uid：effective user
+					-U uid：real user
+					-t TERMINAL：与指定的终端相关的进程；
+					-l：显示进程名；
+					-a：显示完整格式的进程名；
+					-P pid：显示此进程的子进程；
+
+			pidof命令：
+				根据进程名，取其pid；
+
+			top命令：
+				top - display Linux processes
+
+				排序：
+					P：以占据CPU百分比排序；
+					M：以占据内存百分比排序；
+					T：累计占用CPU时间排序；
+
+				首部信息：
+					uptime信息：l命令
+					tasks信息及cpu信息：t命令
+					内存信息：m命令
+
+				推出命令：q
+				修改刷新时间间隔：s
+				终止指定的进程：k
+
+				选项：
+					-d #：指定刷新时间间隔，默认为3秒；
+					-b：以批次方式显示；
+					-n #：显示多少批次；
+
+			uptime命令：显示系统时间、运行时长及平均负载；
+				过去1分钟、5分钟和15分钟的平均负载；
+					等待运行的进程队列的长度；
+
+回顾：Linux OS基础概念
 			  
 
 
