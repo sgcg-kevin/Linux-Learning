@@ -2720,7 +2720,7 @@ Linux进程及作业管理
 							o field1,field2,...：自定义要显示的字段历列表，以逗号分隔；
 								常用的field：pid, ni, pri, psr, pcpu, stat, comm, tty, ppid, rtprio
 									ni：nice值；
-									pri：priority，优先级；
+									proi：priority，优先级；
 									rpprio：real time priority，实时优先级；
 
 			pgreg, pkill命令：
@@ -2763,8 +2763,680 @@ Linux进程及作业管理
 				过去1分钟、5分钟和15分钟的平均负载；
 					等待运行的进程队列的长度；
 
-回顾：Linux OS基础概念
-			  
+回顾：Linux OS基础概念、进程查看的几个工具；
+
+	内核的功能：进程管理（进程调度）
+		进程调度：保存现场，恢复现场
+			task struct：任务结构；
+			task list：任务列表；
+
+		CPU：us, sy, ni, id, hi, si, cs, st
+		Memory：VSZ, RSS, SHM
+
+	命令：pstree, pgrep, pkill, ps, top, uptime
+
+Linux进程及作业管理(2)
+	
+	CentOS 6:http://
+	CentOS 7:http://
+
+	htop命令：
+		选项：
+			-d #：指定延迟时间间隔；
+			-u UserName：仅显示指定用户的进程；
+			-s COLUME：以指定字段进行排序；
+		子命令：
+			l：显示选定的进程打开的文件列表；
+			s：跟踪选定的进程的系统调用；
+			t：以层级关系显示各进程状态；
+			a：将选定的进程绑定至某指定的CPU核心；
+
+	vmstat命令：
+		vmstat - Report virtual memory statistics
+
+		vmstat [options] [delay [count]]
+			procs：
+				r：等待运行的进程的个数；CPU上等待运行的任务的队列长度；
+				b：处于不可中断睡眠态的进程个数；被阻塞的任务队列的长度；
+			memory：
+				swpd：交换内存使用总量；
+				free：空闲的物理内存总量；
+				buffer：用于buffer的内存总量；
+				cache：用于cache的内存总量；
+			swap：
+				si：数据进入swap中的数据速率(kb/s)
+				so：数据离开swap的速率(kb/s)
+			io：
+				bi：从块设备读入设局到系统的速率(kb/s)
+				bo：保存数据至块设备的速率(kb/s)
+			system：
+				in：interrupts，中断速率；
+				cs：context switch，上下文切换的速率；
+			cpu：
+				us：user space
+				sy：system
+				id：idle
+				wa：wait
+				st：stolen
+
+		选项：
+			-s：显示内存统计数据；
+
+	pmap命令：
+		pmap - report memory map of a process
+
+		pmap [options] pid [...]
+			-x：显示详细格式的信息；
+
+		另一种查看方式：cat /proc/PID/maps
+
+	glances命令：
+		glances - A cross-platform curses-based system monitoring tool
+
+		内建命令：
+
+		常用选项：
+			-b：以byte为单位显示网卡数据速率；
+			-d：关闭磁盘I/O模块；
+			-m：关闭mount模块；
+			-n：关闭network模块；
+			-t #：刷新时间间隔；
+			-1：每个cpu的相关数据单独显示；
+			-o {HTML|CSV}：输出格式；
+			-f /PATH/TO/SOMEDIR：设定输出文件的位置；
+
+		C/S模式下运行glances命令：
+			服务模式：
+				glacnes -s -B IPADDR
+
+				IPADDR：本机的某地址，用于监听；
+
+			客户端模式：
+				glances -c IPADDR
+
+				IPADDR：是远程服务器的地址；
+
+	dstat命令：
+		dstat - versatile tool for generating system resource statistics
+
+		dstat [-afv] [options..] [delay [count]]
+
+		常用选项：
+			-c, --cpu：显示cpu相关信息；
+				-C #,#,..,total
+			-d, --disk：显示磁盘的相关信息
+				-D sda,sdb,...,tobal
+			-g：显示page相关的速率数据；
+			-m：Memory的相关统计数据；
+			-n：Interface的相关统计数据；
+			-p：显示process的相关统计数据；
+			-r：显示io请求的相关统计数据；
+			-s：显示swapped的相关统计数据；
+
+			--tcp
+			--udp
+			--raw
+			--socket
+
+			--ipc
+
+			--top cpu：显示最占用CPU的进程；
+			--top-io：最占用io的进程；
+			--top-mem：最占用内存的进程；
+			--top-lantency：延迟最大的进程；
+
+	kill命令：
+
+		kill - terminate a process
+
+		用于向进程发送信号，以实现对进程的管理；
+
+		显示当前系统可用信号：
+			kill -l [signal]
+
+			每个信号的标识方法有三种：
+				1)信号的数字标识；
+				2)信号的完整名称；
+				3)信号的简写名称；
+
+		向进程发信号：
+			kill [-s signal|-SIGNAL] pid...
+
+			常用信号：
+				1）SIGHUP：无需关闭进程而让其重读配置文件；
+				2）SIGINT：终止正在运行的进程，相当于Ctrl+C
+				9）SIGKILL：杀死正在运行中的进程；
+				15）SIGTERM：终止正在运行中的进程；
+				18）SIGCONT：
+				19）SIGSTOP：
+
+	killall命令：
+
+		killall - kill processes by name
+
+		killall [-SIGNAL] program
+
+	Linux系统控制：
+
+		job：
+			前台作业(foreground)：通过终端启动，且启动后会一直占据终端；
+			后台作业(background)：可以通过终端启动，但启动后即转入后台运行（释放终端）；
+
+		如何让作业运行于后台？
+			(1)运行中的作业
+				Ctrl+z
+				注意：送往后台后，作业会转为停止态；
+			(2)尚未启动的作业
+				# COMMAND &
+
+				注意：此类作业虽然被送往后台，但其依然与终端相关；如果希望把送往后台的作业剥离与终端的关系：
+					# nohup COMMAND &
+
+		查看所有的作业：
+			# jobs
+
+		可实现作业控制的常用命令：
+			# fg [[%]JOB_NUM]：把指定的作业调回前台；
+			# bg [[%]JOB_NUM]：让送往后台的作业在后台继续运行；
+			# kill [%JOB_NUM]：终止指定的作业；
+
+	调整进程优先级：
+
+		可通过nice值调整的优先级范围：100-139
+			分别对应于：-20, 19
+
+		进程启动时，其Nice值默认为0，其优先级是129；
+
+		nice命令：
+			以指定的nice值启动并运行命令
+				# nice [OPTION] [COMMAND [ARGU]...]
+					选项：
+						-n NICE
+
+				注意：仅管理员可调低nice值；
+
+		renice命令：
+			renice [-n] NICE PID
+
+		查看Nice值和优先级：
+			ps axo pid,nice,proproty,comm
+
+	为涉及到的命令：sar, tsar, iostat, iftop, nethog, ..
+
+	博客作业：htop/dstat/top/ps命令的使用；
+
+网络客户端工具：
+
+	ping/lftp/ftp/lftpget/wget等；
+
+	ping命令：
+		ping - send ICMP ECHO_REQUEST to network hosts 
+		ICMP：Internet Control Mseeage Protocol
+
+		ping [OPTION] destination
+			-c #：发送的ping包个数；
+			-w #：ping命令超时时长；
+			-W #：一次ping命令操作中，等待对方相应的超时时长；
+
+			-s #：指明ping包报文大小；
+
+	hping命令：（package:hping3）
+		hping3 - send (almost) arbitrary TCP/IP packets to network hosts
+
+			--fast
+			--faster
+			--flood
+			-i uX
+
+	traceroute命令：
+		traceroute - print the route packets trace to network host
+		
+		跟踪从源主机到目标主机之间经过的网关；
+
+	ftp命令：
+		ftp:File Transfer Protocol
+
+			ftp服务命令行客户端工具；
+
+	lftp命令：
+		lftp - Sophisticated file transfer program
+		lftp [-p port] [-u user[,pass]] [site]
+
+		get, mget
+		put, mput
+		rm, mrm
+
+	lftpget命令：
+		lftpget [-c] [-d] [-v] URL [URL...]
+			-c：继续此前的下载；
+
+	wget命令：
+		Wget - The non-interactive network downloader.
+
+		wget [option]... [URL]...
+			-b：在后台执行下载操作；
+			-q：静默模式，不显示下载进度；
+			-O file：下载的文件的保存位置；
+			-c：续传；
+			--limit-rate=amount：以指定的速率传输文件；
+
+bash脚本编程
+
+	顺序执行
+	选择执行：if, case
+	循环执行：for, while, until
+
+	for循环格式：
+		for VARAIBLE in LIST; do
+			循环体
+		done
+
+	while循环：
+		while CONDITION; do
+			循环体
+			循环控制变量修正表达式
+		done
+
+		进入条件：CONDITION测试为“真”
+		退出条件：CONDITION测试为“假”
+
+	until循环：
+		untile CONDITION; do
+			循环体
+			循环控制变量修正表达式
+		done
+
+		进入条件：CONDITION测试为“假”
+		退出条件：CONDITION测试为“真”
+
+		示例：求100以内所有正整数之和；
+
+			#!/bin/bash
+			#
+			declare -i sum=0
+			declare -i i=1
+
+			until [ $i -gt 100 ]; do
+			    let sum+=$i
+			    let i++
+			done
+
+			echo $sum
+
+			#!/bin/bash
+			#
+			declare -i summary=0
+
+			declare -i i=1
+			while [ $i -le 10 ]; do
+			    summary=$[$summary+$i]
+			    let i++
+			done
+
+			echo "$summary"
+
+	练习：分别使用for, while, until实现
+		1、求100以内所有偶数之和，100以内所有奇数之和；
+		2、创建10个用户，user101-user110；密码同用户名；
+		3、打印九九乘法表；
+		4、打印逆序九九乘法表；
+
+		1X1=1
+		1X2=2 2X2=4
+		1X3=3 2X3=6 3X3=9
+
+		外循环控制乘数，内循环控制被乘数；
+			#!/bin/bash
+			#
+
+			for j in {1..9}; do
+			    for i in $(seq 1 $j); do
+			        echo -n -e "${i}X${j}=$[${i}*${j}]\t"
+			    done
+			    echo
+			done
+
+CentOS系统启动流程
+
+	Linux系统的组成部分：内核+根文件系统
+		内核：进程管理、内存管理、网络协议栈、文件系统、驱动程序、安全功能
+			IPC：Inter Process Communication
+				消息队列、semerphor、shm
+				socket
+
+	运行中的系统环境可分为两层：内核空间、用户空间
+		用户空间：应用程序（进程或线程）
+		内核空间：内核代码（系统调用）
+
+	内核设计流派：
+		单内核设计：把所有功能集成于同一个程序；
+			Linux
+		微内核设计：每种功能使用一个单独的子系统实现；
+			Windows, Solaris
+
+
+		Linux内核特点：
+			支持模块化：.ko(kernel object)
+			支持模块运行时动态装载或卸载；
+
+			组成部分：
+				核心文件：/boot/vmlinuz-VERSION-release
+				ramdisk：
+					CentOS 5：/boot/initrd-VERSION-release.img
+					CentOS 6,7：/boot/initramfs-VERSION-release.img
+				模块文件：/lib/modules/VERSION-release
+
+	CentOS 系统的启动流程：
+
+		POST：加电自检；
+			ROM：CMOS
+				BIOS：Basic Input and Output System
+
+			ROM+RAM 
+
+		Boot Squence：
+			按次序查找各引导设备，第一个有引导程序的设备即为本次启动要用到的设备；
+
+			bootloader：引导加载器，程序；
+					Windows：ntloader
+					Linux：
+						LILO：LInux LOader
+						GRUB：GRand Uniform Bootloader
+							GRUB 0.X；Grub Legacy
+							GRUB 1.X：Grub2
+
+					功能：提供一个菜单，允许用户选择要启动的系统或不同的内核版本；把用户选定的内核装载到RAM中的特定空间中，解压、展开，而后把系统控制权移交给内核；
+
+				MBR：Master Boot Record
+					512bytes：
+						446bytes：bootloader
+						64bytes：fat
+						2bytes：55AA
+
+				GRUB：
+					bootloader：1st stage
+					Partition：filesystem driver, 1.5 stage
+					Partition：/boot/grub, 2nd stage
+
+				注意：UEFI，GPT
+
+			Kernel：
+				自身初始化
+					探测可识别到的所有硬件设备；
+					加载硬件驱动程序；(有可能会借助于ramdisk加载驱动)
+					以只读方式挂载根文件系统；
+					运行用户空间的第一个应用程序：/sbin/init
+
+				init程序的类型：
+					CentOS 5-：SysV init
+						配置文件：/etc/inittab
+
+					CentOS 6：Upstart
+						配置文件：/etc/inittab
+							/etc/init/*.conf
+
+					CentOS 7：Systemd
+						配置文件：/usr/lib/systemd/system/, /etc/systemd/system
+
+				ramdisk：
+
+					Linux内核的特性之一：使用缓冲和缓存来加速对磁盘上的文件访问；
+
+						ramdisk --> ramfs
+
+						CentOS 5：initrd
+							工具程序：mkinitrd
+						CentOS 6,7：initramfs
+							工具程序：dracut, mkinitrd
+
+			系统初始化流程（内核级别）：POST --> BootSequence(BIOS) --> Bootloader(MBR) --> Kernel(ramdisk) --> rootfs(readonly) --> /sbin/init()
+
+		/sbin/init：
+
+			CentOS 5：SysV init
+
+				运行级别：为了系统的运行或维护等目的而设定的机制；
+					0-6：7个级别；
+						0：关机,shutdown
+						1：单用户模式(single user), root用户，无需认证；维护模式；
+						2：多用户模式(multi user)，会启动网络功能，但不会启动NFS；维护模式；
+						3：多用户模式(multi user)，完全功能模式；文本界面；
+						4：预留级别：目前无特别使用目的，但习惯以同3级别功能使用；
+						5：多用户模式(multi user)，完全功能模式，图形界面；
+						6：重启，reboot
+
+					默认级别：3，5
+
+					级别切换：init #
+
+					级别查看：
+						who -r
+						runlevel
+
+				配置文件：/etc/inittab
+
+					每行定义一种action以及与之对应的process
+						id:runlevels:action:process
+							id：一个任务的标识符；
+							runlevels：在哪些级别启动此任务；#,###,也可以为空，表示所有级别；
+							action：在什么条件下启动此任务；
+							process：任务；
+
+						action：
+							wait：等待切换至此任务所在的级别时执行一次；
+							respawn：此任务终止时，就自动重新启动之；
+							initdefault：设定默认运行级别；此时，process省略；
+							sysinit：设定系统初始化方式，此处一般为指定  /etc/rc.d/rc.sysinit脚本；
+
+						例如：
+							id:3:initdefault:
+							si::sysinit:/etc/rc.d/re.sysinit
+
+							l0:0:wait:/etc/rc.d/rc 0
+							l1:1:wait:/etc/rc.d/rc 1
+							.................
+							l6:6:wait:/etc/rc.d/rc 6
+								意味着去启动或关闭/etc/rc.d/rc3.d/目录下的服务脚本所控制的服务；
+									K*：要停止的服务；K##*,优先级，数字越小，越先关闭；依赖的服务先关闭，而后关闭被依赖的；
+									S*：要启动的服务；S##*，优先级，数字越小，越是优先启动；被依赖的服务先启动，而依赖的服务后启动；
+								rc脚本：接受一个运行级别数字为参数；
+
+									脚本框架：
+										for srv in /etc/rc.d/rc#.d/K*; do
+											$srv stop
+										done
+
+										for srv in /etc/rc.d/rc#.d/S*; do
+											$srv start
+										done
+
+									/etc/init.d/* (/etc/rc.d/init.d/*)脚本执行方式：
+										# /etc/init.d/SRV_SCRIPT {start|stop|restart}
+										# service SRV_SCRIPT {start|stop|restart}
+
+									chkconfig命令：管控/etc/init.d/每个服务脚本在各级别下的启动或关闭状态；
+
+										查看：chkconfig [--list] [name]
+
+										添加：chkconfig --add name
+
+											能被添加的服务的脚本定义格式之一：
+												#!/bin/bash
+												#
+												# chkconfig:LLL NN NN
+												# description:
+
+										删除：chkconfig --del name
+										修改指定的链接类型：
+											chkconfig [--level LEVELS] name <on|off|reset>
+												--level LEVELS：指定要控制的级别；默认为2345；
+
+								注意：正常级别下，最后启动的一个服务S99local没有链接至/etc/init.d下的某脚本，而是链接至了/etc/rc.d/rc.local脚本；因此，不便或不需写为服务脚本的程序期望能开机自动运行时，直接放置于此脚本文件中即可。
+
+							tty1:2345:respawn:/usr/sbin/mingetty tty1
+							......
+							tty6:2345:respawn:/usr/sbin/mingetty tty6
+
+								（1）mingetty会调用login程序；
+								（2）打开虚拟终端的程序除了mingetty之外，还有诸如getty等；
+
+							tty7:5:respawn:/etc/X11
+
+
+						系统初始化脚本：/etc/rc.d/rc.sysinit
+							(1)设置主机名；
+							(2)设置欢迎信息；
+							(3)激活udev和selinux；
+							(4)挂载/etc/fstab文件中定义的所有文件系统；
+							(5)检测根文件系统，并以读写方式重新挂载根文件系统；
+							(6)设置系统时钟；
+							(7)根据/etc/sysctl.conf文件来设置内核参数；
+							(8)激活lvm及软raid设备；
+							(9)激活swap设备；
+							(10)加载额外设备的驱动程序；
+							(11)清理操作；
+
+				总结（用户空间的启动流程）：/sbin/init(/etc/inittab)
+					设置默认运行级别 --> 运行系统初始化脚本，完成系统初始化 --> 关闭对应级别下需要停止的服务，启动对应级别下需要开启的服务 --> 设置登录终端 [--> 启动图形终端]
+
+			CentOS 6：
+
+				init程序：upstart，但依然为/sbin/init，其配置文件：
+					/etc/init/*.conf, /etc/inittab（仅用于定义默认运行级别）
+
+						注意：*.conf为upstart风格的配置文件；
+
+						rcS.conf
+						rc.conf
+						tty.conf
+
+			CentOS 7：
+
+				init程序：systemd，配置文件：/usr/lib/systemd/system/*, 
+				/etc/systemd/system/*
+
+				完全兼容SysV脚本机制；因此，service命令依然可用；不过，建议使用systemctl命令来控制服务；
+
+					# systemctl {start|stop|restart|status} name[.service]
+
+		博客作业：CentOS系统启动流程；
+
+回顾：
+	
+	CentOS 6启动流程：
+		POST --> Boot Sequence(BIOS) --> Boot Loader (MBR) --> Kernel(ramdisk) --> rootfs --> switchroot --> /sbin/init --> (/etc/inittab,/etc/init/*.conf) --> 设定默认运行级别 -->系统初始化脚本 --> 关闭或启动对应级别下的服务 --> 启动终端
+
+GRUB(Boot Loader)：
+	
+	grub: GRand Unified Bootloader
+		grub 0.x: grub legacy
+		gryb 1.x: grub2
+
+	grub legacy:
+		stage1: mbr
+		stage1_5: mbr之后的扇区，让stage1中的bootloader能识别stage2所在的分区上的文件系统；
+		stage2: 磁盘分区(/boot/grub)
+
+		配置文件：/boot/grub/grub.conf <-- /etc/grub.conf
+
+		stage2及内核等通常放置于一个基本磁盘分区：
+			功用：
+				(1) 提供菜单、并提供交互式接口
+					e：编辑模式，用于编辑菜单；
+					c：命令模式，交互式接口；
+				(2) 加载用户选择的内核或操作系统
+					允许传递参数给内核
+					可隐藏此菜单
+				(3) 为菜单提供了保护机制
+					为编辑菜单进行认证
+					为启用内核或操作系统进行认证
+
+		如何识别设备：
+			(hd,#)
+				hd#：磁盘编号，用数字表示；从0开始编号
+				#：分区编号，用数字表示；从0开始编号
+
+				(hd0,0)
+
+		grub的命令行接口
+			help：获取帮助列表
+			help KEYWORD：详细帮助信息
+			find (hd#,#)/PATH/TO/SOMEFILE：
+			root (hd#,#)
+			kernel /PATH/TO/KERNEL_FILE：设定本次启动时用到的内核文件；额外还可以添加许多内核支持使用的cmdline参数；
+				例如：init=/path/to/init, selinux=0
+			initrd /PATH/TO/INITRAMFS_FILE：设定为选定的内核提供额外文件的ramdisk；
+			boot：引导启动选定的内核；
+
+			手动在grub命令行接口启动系统：
+				grub> root (hd#,#)
+				grub> kernel /vmlinuz-VERSION-RELEASE ro root=/dev/DEVICE
+				grub> initrd /initramfs-VERSION-RELEASE.img
+				grub> boot
+
+		配置文件：/boot/grub/grub.conf
+			配置项；
+				default=#：设定默认启动的菜单项(title)编号从0开始；
+				timeout=#：指定菜单项等待用户选择的等待时长；
+				splashimage=(hd#,#)/PATH/TO/XPM_PIC_FILE：指明菜单背景图片文件路径；
+				hiddenmenu：隐藏菜单；
+				password [--md5] STRING：菜单编辑认证；
+				title TITLE：定义菜单项“标题”，可出现多次；
+					root (hd#,#)：grub查找stage2及kernel文件所在设备分区；为grub的“根”；
+					kernel /PATH/TO/VMLINUZ_FILE [PARAMETERS]：启动的内核
+					initrd /PATH/TO/INITRAMFS_FILE：内核匹配的ramfs文件；
+					password [--md5] STRING：启动选定的内核或操作系统时进行认证；
+
+
+			grub-md5-crypt命令：
+
+		进入单用户模式：
+			(1) 编辑grub菜单(选定要编辑的title，而后使用e命令)
+			(2) 在选定的kernel后附加
+				1，s，S或single都可以；
+			(3) 在kernel所在行，键入"b"命令；
+
+		安装grub：
+			(1) grub-install
+				grub-install --root-directory=ROOT /dev/DISK
+			
+			(2) grub
+				grub> root (hd#,#)
+				grub> setup (hd#)
+
+		练习：
+			1、新加硬盘，提供直接单独运行bash系统；
+			2、破坏本机grub stage1，而后在救援模式下修复之；
+			3、为grub设备保护功能；
+
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+					
+
+
+
+
+
+
+
+
+
+
+
+							
+
 
 
 
